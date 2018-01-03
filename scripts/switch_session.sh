@@ -17,11 +17,21 @@ fuzzy_switch() {
     line_count=$(echo "$fzf_out" | wc -l)
     session_name=$(echo "$fzf_out" | tail -n1)
 
-    if [ $line_count -eq 1 ]; then
-        # Session name did not match, create a new one
-        unset TMUX
-        $tmux new-session -d -s "$session_name"
-        $tmux switch-client -t "$session_name"
+    if [ $line_count -eq 1 ] && [ -n "$session_name" ]; then
+        # Session name did not match, create a new one;
+        # want to ensure that was not a typo.
+        read -p "Create \"$session_name\"? " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]
+        then
+            unset TMUX
+            $tmux new-session -d -s "$session_name"
+            $tmux switch-client -t "$session_name"
+        else
+            # That was a typo, try to choose once more
+            fuzzy_switch
+            return
+        fi
     else
         $tmux switch-client -t "$session_name"
 
