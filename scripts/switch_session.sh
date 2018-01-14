@@ -11,7 +11,7 @@ fuzzy_switch() {
         $tmux ls -F '#{session_name}' | \
         grep -v '^1' | sort -r | \
         perl -pe 's/^0 [0-9]+//' | \
-        fzf --height=100% --print-query --prompt="$prompt" || \
+        fzf --height=100% --print-query --prompt="$prompt" --query "$1" || \
         true\
         )
     line_count=$(echo "$fzf_out" | wc -l)
@@ -28,8 +28,9 @@ fuzzy_switch() {
             $tmux new-session -d -s "$session_name"
             $tmux switch-client -t "$session_name"
         else
-            # That was a typo, try to choose once more
-            fuzzy_switch
+            # That was a typo, try to choose once more; pass inputted string a
+            # query.
+            fuzzy_switch "$(echo "$fzf_out" | head -n 1)"
             return
         fi
     else
