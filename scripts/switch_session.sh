@@ -32,9 +32,12 @@ fuzzy_switch() {
     # input does not match any active session's name.
     fzf_out=$(\
         $tmux ls -F '#{session_name}' | \
+        # Don't show the current session on the list
         rg -v `tmux display-message -p '#{session_name}'` | \
-        fzf --height=100% --print-query --border-label-pos=2 --border-label '📺 Sessions' \
-            --prompt="$prompt" --query "$1" || true)
+        fzf --height=100% --print-query --border none --margin 1% --no-info \
+        --header '📺 Session:' --color=header:italic \
+        --preview 'tmux capture-pane -e -p -t {}' --preview-window right:75%:nowrap \
+        --prompt="$prompt" --query "$1" || true)
 
     log_message "DEBUG" "Fzf output is '$fzf_out'"
 
